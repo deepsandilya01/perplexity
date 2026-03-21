@@ -5,40 +5,43 @@ import chatRouter from "./routes/chat.routes.js";
 import morgan from "morgan";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url"; // ✅ add this
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url); // ✅ add this
-const __dirname = path.dirname(__filename); // ✅ add this
+// __dirname fix (ESM)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middleware
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://perplexity-2cid.onrender.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://perplexity-2cid.onrender.com",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  }),
+  })
 );
 
-// Health check
+// API routes FIRST
 app.get("/api", (req, res) => {
   res.json({ message: "Server is running" });
 });
 
-// ✅ static files first
-app.use(express.static(path.join(__dirname, "..", "public")));
-
 app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter);
 
-console.log(__dirname);
+// STATIC FILES
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-// ✅ catch-all LAST
+// CATCH-ALL 
 app.get("*name", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
