@@ -2,6 +2,8 @@ import { useDispatch } from "react-redux";
 import { register, login, getMe } from "../service/auth.api";
 import { setUser, setLoading, setError } from "../auth.slice";
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export function useAuth() {
   const dispatch = useDispatch();
 
@@ -46,9 +48,11 @@ export function useAuth() {
       dispatch(setLoading(true));
       dispatch(setError(null));
       const data = await getMe();
+      await wait(400);
       dispatch(setUser(data.user));
       return data;
     } catch (err) {
+      await wait(400);
       dispatch(setUser(null));
       dispatch(
         setError(err.response?.data?.message || "Failed to fetch user data"),

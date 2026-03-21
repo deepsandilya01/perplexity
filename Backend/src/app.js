@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: "https://perplexity-2cid.onrender.com",
+    origin: ["http://localhost:5173", "https://perplexity-2cid.onrender.com"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
@@ -29,8 +29,6 @@ app.use(
 app.get("/api", (req, res) => {
   res.json({ message: "Server is running" });
 });
-
-
 
 // ✅ static files first
 app.use(express.static(path.join(__dirname, "..", "public")));

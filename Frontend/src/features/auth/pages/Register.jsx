@@ -36,10 +36,10 @@ const Register = () => {
   };
 
   return (
-    <section className="min-h-screen bg-zinc-950 px-4 py-10 text-zinc-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[85vh] w-full max-w-5xl items-center justify-center">
-        <div className="w-full max-w-md rounded-2xl border border-[#31b8c6]/40 bg-zinc-900/70 p-8 shadow-2xl shadow-black/50 backdrop-blur">
-          <h1 className="text-3xl font-bold text-[#31b8c6]">Create Account</h1>
+    <section className="min-h-screen bg-zinc-950 px-4 py-6 text-zinc-100 sm:px-6 sm:py-10 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-5xl items-center justify-center sm:min-h-[85vh]">
+        <div className="w-full max-w-md rounded-2xl border border-[#31b8c6]/40 bg-zinc-900/70 p-5 shadow-2xl shadow-black/50 backdrop-blur sm:p-8">
+          <h1 className="text-2xl font-bold text-[#31b8c6] sm:text-3xl">Create Account</h1>
           <p className="mt-2 text-sm text-zinc-300">
             Register with your username, email, and password.
           </p>
