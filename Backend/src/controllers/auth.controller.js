@@ -2,6 +2,10 @@ import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
+const backendBaseUrl = "https://perplexity-2cid.onrender.com"
+
+const frontendBaseUrl = "https://perplexity-2cid.onrender.com";
+
 /**
  * @desc Register a new user
  * @route POST /api/auth/register
@@ -9,51 +13,73 @@ import { sendEmail } from "../services/mail.service.js";
  * @body { username, email, password }
  */
 export async function register(req, res) {
-  const { username, email, password } = req.body;
+  try {
+    const { username, email, password } = req.body;
 
-  const isUserAlreadyExists = await userModel.findOne({
-    $or: [{ email }, { username }],
-  });
-
-  if (isUserAlreadyExists) {
-    return res.status(400).json({
-      message: "User with this email or username already exists",
-      success: false,
-      err: "User already exists",
+    const isUserAlreadyExists = await userModel.findOne({
+      $or: [{ email }, { username }],
     });
-  }
 
-  const user = await userModel.create({ username, email, password });
+    if (isUserAlreadyExists) {
+      return res.status(400).json({
+        message: "User with this email or username already exists",
+        success: false,
+        err: "User already exists",
+      });
+    }
 
-  const emailVerificationToken = jwt.sign(
-    {
-      email: user.email,
-    },
-    process.env.JWT_SECRET,
-  );
+    const user = await userModel.create({ username, email, password });
 
-  await sendEmail({
-    to: email,
-    subject: "Welcome to Perplexity!",
-    html: `
+    const emailVerificationToken = jwt.sign(
+      {
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+    );
+
+    const verificationUrl = `${backendBaseUrl}/api/auth/verify-email?token=${emailVerificationToken}`;
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Welcome to Perplexity!",
+        html: `
                 <p>Hi ${username},</p>
                 <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
                 <p>Please verify your email address by clicking the link below:</p>
-                <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <a href="${verificationUrl}">Verify Email</a>
                 <p>If you did not create an account, please ignore this email.</p>
                 <p>Best regards,<br>The Perplexity Team</p>
         `,
-  });
+      });
+    } catch (mailError) {
+      await userModel.findByIdAndDelete(user._id);
 
-  res.status(201).json({
-    message: "User registered successfully",
-    success: true,
-    user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    },
-  });
+      return res.status(500).json({
+        message: "User could not be registered because verification email failed",
+        success: false,
+        err: mailError.message,
+      });
+    }
+
+    res.status(201).json({
+      message: "User registered successfully",
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("Register error:", err);
+
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+      err: err.message,
+    });
+  }
 }
 
 /**
@@ -169,7 +195,7 @@ export async function verifyEmail(req, res) {
     const html = `
         <h1>Email Verified Successfully!</h1>
         <p>Your email has been verified. You can now log in to your account.</p>
-        <a href="https://perplexity-2cid.onrender.com/login">Go to Login</a>
+        <a href="${frontendBaseUrl}/login">Go to Login</a>
     `;
 
     return res.send(html);

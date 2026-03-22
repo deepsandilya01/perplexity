@@ -1,5 +1,16 @@
 import nodemailer from "nodemailer";
 
+const requiredMailEnvVars = [
+  "GOOGLE_USER",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_REFRESH_TOKEN",
+];
+
+function getMissingMailEnvVars() {
+  return requiredMailEnvVars.filter((envVar) => !process.env[envVar]);
+}
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -21,6 +32,14 @@ transporter
   });
 
 export async function sendEmail({ to, subject, html, text }) {
+  const missingMailEnvVars = getMissingMailEnvVars();
+
+  if (missingMailEnvVars.length > 0) {
+    throw new Error(
+      `Missing mail environment variables: ${missingMailEnvVars.join(", ")}`,
+    );
+  }
+
   const mailOptions = {
     from: process.env.GOOGLE_USER,
     to,
@@ -29,6 +48,12 @@ export async function sendEmail({ to, subject, html, text }) {
     text,
   };
 
-  const details = await transporter.sendMail(mailOptions);
-  console.log("Email sent:", details);
+  try {
+    const details = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", details.response);
+    return details;
+  } catch (err) {
+    console.error("Failed to send email:", err);
+    throw err;
+  }
 }
